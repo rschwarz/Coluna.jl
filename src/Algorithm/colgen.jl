@@ -364,7 +364,7 @@ function solve_sps_to_gencols!(
 
     # update reduced costs
     updatereducedcosts!(reform, redcostsvec, dual_sol)
-    TO.@timeit _to "Solve Sp" begin
+    TO.@timeit Coluna._to "Solve Sp" begin
     ### BEGIN LOOP TO BE PARALLELIZED
     if algo.solve_subproblems_parallel
         spuids = collect(keys(spsdatas))
