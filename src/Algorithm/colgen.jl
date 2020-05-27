@@ -488,7 +488,7 @@ function cleanup_columns(algo::ColumnGeneration, nb_iterations::Int64, data::Ref
             num_cols_removed += 1
         end
     end
-    @logmsg LogLevel(0) "Cleaned up $num_cols_removed master columns"
+    #@logmsg LogLevel(0) "Cleaned up $num_cols_removed master columns"
 end
 
 ph_one_infeasible_db(algo, db::DualBound{MinSense}) = getvalue(db) > algo.optimality_tol
