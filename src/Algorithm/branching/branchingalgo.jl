@@ -57,6 +57,7 @@ Base.@kwdef struct StrongBranching <: AbstractDivideAlgorithm
     phases::Vector{BranchingPhase} = []
     rules::Vector{PrioritisedBranchingRule} = []
     selection_criterion::SelectionCriterion = MostFractionalCriterion
+    int_tol = 1e-6
 end
 
 # default parameterisation corresponds to simple branching (no strong branching phases)
@@ -266,7 +267,8 @@ function run!(algo::StrongBranching, data::ReformData, input::DivideInput)::Divi
 
         # generate candidates
         output = run!(rule, data, BranchingRuleInput(
-            original_solution, true, nb_candidates_needed, algo.selection_criterion, local_id
+            original_solution, true, nb_candidates_needed, algo.selection_criterion,
+            local_id, algo.int_tol
         ))
         nb_candidates_found += length(output.groups)
         append!(kept_branch_groups, output.groups)
@@ -274,7 +276,8 @@ function run!(algo::StrongBranching, data::ReformData, input::DivideInput)::Divi
 
         if projection_is_possible(master)
             output = run!(rule, data, BranchingRuleInput(
-                extended_solution, false, nb_candidates_needed, algo.selection_criterion, local_id
+                extended_solution, false, nb_candidates_needed, algo.selection_criterion,
+                local_id, algo.int_tol
             ))
             nb_candidates_found += length(output.groups)
             append!(kept_branch_groups, output.groups)

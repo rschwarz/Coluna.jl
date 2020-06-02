@@ -1,9 +1,12 @@
+using LightGraphs
+
 function full_instances_tests()
     generalized_assignment_tests()
     capacitated_lot_sizing_tests()
     lot_sizing_tests()
     #facility_location_tests()
     cutting_stock_tests()
+    cvrp_tests()
 end
 
 function mytest()
@@ -279,6 +282,26 @@ function cutting_stock_tests()
         problem, x, y, dec = CLD.CuttingStock.model(data, coluna)
         JuMP.optimize!(problem)
         @test 4 - 1e-6 <= objective_value(problem) <= 4 + 1e-6
+    end
+    return
+end
+
+function cvrp_tests()
+    @testset "play cvrp" begin
+        data = CLD.CapacitatedVehicleRouting.data("A-n16-k3.vrp")
+
+        coluna = JuMP.optimizer_with_attributes(
+            Coluna.Optimizer,
+            "params" => CL.Params(solver = ClA.TreeSearchAlgorithm(
+                maxnumnodes = 10000,
+                branchingtreefile = "cvrp.dot"
+            )),
+            "default_optimizer" => GLPK.Optimizer
+        )
+
+        model, x, dec = CLD.CapacitatedVehicleRouting.model(data, coluna)
+        JuMP.optimize!(model)
+        @test objective_value(model) ≈ 504
     end
     return
 end

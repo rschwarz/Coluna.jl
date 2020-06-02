@@ -118,7 +118,7 @@ function setvar!(
         error(string("Variable of id ", getid(var), " exists"))
     end
     _addvar!(form, var)
-    members != nothing && _setmembers!(form, var, members)
+    members !== nothing && _setmembers!(form, var, members)
     return var
 end
 
@@ -255,7 +255,7 @@ function setcut_from_sp_dualsol!(
     dual_sol_id::ConstrId,
     name::String,
     duty::Duty{Constraint};
-    kind::ConstrKind = Core,
+    kind::ConstrKind = Essential,
     sense::ConstrSense = Greater,
     inc_val::Float64 = -1.0, 
     is_active::Bool = true,
@@ -265,7 +265,7 @@ function setcut_from_sp_dualsol!(
     rhs = getdualsolrhss(spform)[dual_sol_id]
     benders_cut_id = Id{Constraint}(duty, dual_sol_id) 
     benders_cut_data = ConstrData(
-        rhs, Core, sense, inc_val, is_active, is_explicit
+        rhs, Essential, sense, inc_val, is_active, is_explicit
     )
     benders_cut = Constraint(
         benders_cut_id, name;
@@ -300,7 +300,7 @@ function setconstr!(
     name::String,
     duty::Duty{Constraint};
     rhs::Float64 = 0.0,
-    kind::ConstrKind = Core,
+    kind::ConstrKind = Essential,
     sense::ConstrSense = Greater,
     inc_val::Float64 = 0.0,
     is_active::Bool = true,
@@ -325,6 +325,18 @@ function setconstr!(
     end
     return constr
 end
+
+function set_robust_constr_generator!(
+    form::Formulation,
+    kind::ConstrKind,
+    alg::Function
+)
+    constrgen = RobustConstraintsGenerator(0, kind, alg)
+    push!(form.manager.robust_constr_generators, constrgen)
+    return nothing
+end
+
+get_robust_constr_generators(form::Formulation) = form.manager.robust_constr_generators
 
 function _addlocalartvar!(form::Formulation, constr::Constraint)
     matrix = getcoefmatrix(form)
@@ -419,7 +431,7 @@ function _setmembers!(form::Formulation, constr::Constraint, members::VarMembers
             spform = get_dw_pricing_sps(form.parent_formulation)[assigned_form_uid]
             for (col_id, col_coeff) in getprimalsolmatrix(spform)[varid,:]
                 @logmsg LogLevel(-4) string("Adding column ", getname(form, col_id), " with coeff ", col_coeff * var_coeff)
-                coef_matrix[constrid, col_id] = col_coeff * var_coeff
+                coef_matrix[constrid, col_id] += col_coeff * var_coeff
             end
         end
     end
