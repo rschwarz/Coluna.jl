@@ -65,11 +65,7 @@ function optimize!(prob::MathProg.Problem, annotations::MathProg.Annotations, pa
             prob.re_formulation, params.solver, init_pb, init_db
         )
     end
-    #println(_to)
-    open("timeroutputs.txt", "a") do io
-        println(io, _to)
-    end
-    TO.reset_timer!(_to)
+    println(_to)
     @logmsg LogLevel(0) "Terminated"
     @logmsg LogLevel(0) string("Primal bound: ", get_ip_primal_bound(optstate))
     @logmsg LogLevel(0) string("Dual bound: ", get_ip_dual_bound(optstate))
