@@ -14,7 +14,7 @@ end
 
 function ConstrData(; 
     rhs::Float64  = -Inf,
-    kind::ConstrKind = Core,
+    kind::ConstrKind = Essential,
     sense::ConstrSense = Greater,
     inc_val::Float64 = -1.0,
     is_active::Bool = true,
@@ -67,3 +67,8 @@ function Constraint(
     )
 end
 
+mutable struct RobustConstraintsGenerator
+    nb_generated::Int
+    kind::ConstrKind
+    separation_alg::Function
+end

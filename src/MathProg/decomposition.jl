@@ -78,8 +78,6 @@ function instantiatesp!(
 end
 
 # Master of Dantzig-Wolfe decomposition
-
-
 function instantiate_orig_vars!(
     masterform::Formulation{DwMaster},
     origform::Formulation, 
@@ -113,6 +111,10 @@ function instantiate_orig_constrs!(
             origform, masterform, masterform, constr, MasterMixedConstr, loc_art_var = true
         ) # TODO distinguish Pure versus Mixed
     end
+    # Cut generation callbacks
+    for constrgen in get_robust_constr_generators(origform)
+        set_robust_constr_generator!(masterform, constrgen.kind, constrgen.separation_alg)
+    end
     return
 end
 
@@ -133,7 +135,7 @@ function create_side_vars_constrs!(
         name = string("sp_lb_", spuid)
         lb_conv_constr = setconstr!(
             masterform, name, MasterConvexityConstr; 
-            rhs = lb_mult, kind = Core, sense = Greater, inc_val = 100.0, loc_art_var = true
+            rhs = lb_mult, kind = Essential, sense = Greater, inc_val = 100.0, loc_art_var = true
         )
         masterform.parent_formulation.dw_pricing_sp_lb[spuid] = getid(lb_conv_constr)
         coefmatrix[getid(lb_conv_constr), getid(setuprepvar)] = 1.0
@@ -142,7 +144,7 @@ function create_side_vars_constrs!(
         name = string("sp_ub_", spuid)
         ub_conv_constr = setconstr!(
             masterform, name, MasterConvexityConstr; rhs = ub_mult, 
-            kind = Core, sense = Less, inc_val = 100.0, loc_art_var = true
+            kind = Essential, sense = Less, inc_val = 100.0, loc_art_var = true
         )
         masterform.parent_formulation.dw_pricing_sp_ub[spuid] = getid(ub_conv_constr)  
         coefmatrix[getid(ub_conv_constr), getid(setuprepvar)] = 1.0
@@ -380,7 +382,7 @@ function create_side_vars_constrs!(
         cost = setconstr!(
             spform, "cost[$sp_id]", BendSpSecondStageCostConstr; 
             rhs = 0.0, 
-            kind = Core, 
+            kind = Essential, 
             sense = Greater, 
             is_explicit = true
         )
